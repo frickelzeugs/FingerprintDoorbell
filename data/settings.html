@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- created with https://bootstrapformbuilder.com/ -->
+  <title>FingerprintDoorbell</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <style>
+	.alert-custom{
+		background-color:#cecece;
+		color:rgb(0, 0, 0);
+	}
+  </style>
+</head>
+<body>
+	<script>
+		if (!!window.EventSource) {
+			var source = new EventSource('/events');
+
+			source.addEventListener('open', function(e) {
+				console.log("Events Connected");
+			}, false);
+
+			source.addEventListener('error', function(e) {
+				if (e.target.readyState != EventSource.OPEN) {
+				console.log("Events Disconnected");
+				}
+			}, false);
+
+			// event is fired when a new message from server was received
+			source.addEventListener('message', function(e) {
+				console.log("message", e.data);
+				document.getElementById('logMessages').innerHTML = event.data;
+			}, false);
+
+		}
+    </script>
+
+	<nav class="navbar navbar-inverse">
+		<div class="container-fluid">
+		  <div class="navbar-header">
+			<a class="navbar-brand" href="/">%HOSTNAME%</a>
+		  </div>
+		  <ul class="nav navbar-nav">
+			<li><a href="/">Fingerprints</a></li>
+			<li class="active"><a href="#">Settings</a></li>
+		  </ul>
+		</div>
+	</nav>
+
+	<div class="alert alert-custom" id="logMessages" role="alert">%LOGMESSAGES%</div>
+
+	<form class="form-horizontal" action="/settings">
+	<fieldset>
+
+	<!-- Form Name -->
+	<legend>Settings</legend>
+
+	<!-- Text input-->
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="mqtt_server">MQTT Server (Broker)</label>  
+		<div class="col-md-4">
+		<input id="mqtt_server" name="mqtt_server" type="text" placeholder="Address of your MQTT Broker" class="form-control input-md" value="%MQTT_SERVER%" required>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="mqtt_username">MQTT Username</label>  
+		<div class="col-md-4">
+		<input id="mqtt_username" name="mqtt_username" type="text" placeholder="Username for connecting to your MQTT Broker" class="form-control input-md" value="%MQTT_USERNAME%">
+		<small class="text-muted">Leave empty if your broker is not requiring authentication.</small>		
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="mqtt_password">MQTT Password</label>  
+		<div class="col-md-4">
+		<input id="mqtt_password" name="mqtt_password" type="text" placeholder="Password for connecting to your MQTT Broker" class="form-control input-md" value="%MQTT_PASSWORD%">
+		<small class="text-muted">Leave empty if your broker is not requiring authentication.</small>		
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="mqtt_rootTopic">MQTT Root Topic</label>  
+		<div class="col-md-4">
+		<input id="mqtt_rootTopic" name="mqtt_rootTopic" type="text" placeholder="Root topic where FingerprintDoorbell publishes its messages" class="form-control input-md" value="%MQTT_ROOTTOPIC%" required>
+		<small class="text-muted">Published Topics (=write)<br>
+			- "%MQTT_ROOTTOPIC%/ring"<br>
+			- "%MQTT_ROOTTOPIC%/matchId"<br>
+			- "%MQTT_ROOTTOPIC%/matchName"<br>
+			- "%MQTT_ROOTTOPIC%/matchConfidence"<br>
+			Subscribed Topics (=read)<br>
+			- "%MQTT_ROOTTOPIC%/ignoreTouchRing"
+		</small>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="ntpServer">NTP Server</label>  
+		<div class="col-md-4">
+		<input id="ntpServer" name="ntpServer" type="text" placeholder="URL to NTP server" class="form-control input-md" value="%NTP_SERVER%">
+		<small class="text-muted">Used for timestamps in log panel. If you don't specify any, time will be always null.</small>		
+		</div>
+	</div>
+
+	<!-- Button -->
+	<div class="form-group">
+	  <label class="col-md-4 control-label" for="btnSaveSettings"></label>
+	  <div class="col-md-4">
+		<button id="btnSaveSettings" name="btnSaveSettings" class="btn btn-success">Save and Restart</button>
+	  </div>
+	</div>
+
+	</fieldset>
+	</form>
+
+	<!-- Form Name -->
+	<legend>Advanced Actions</legend>
+	<form class="form-horizontal">
+	<fieldset>
+	
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="btnFirmwareUpdate"></label>
+		<div class="col-md-4">
+			<button id="btnFirmwareUpdate" name="btnFirmwareUpdate" class="btn btn-info" type="submit" formaction="update">Firmware-Update </button>
+			<button id="btnFactoryReset" name="btnFactoryReset" class="btn btn-danger" type="submit" formaction="factoryReset" onclick="return confirm('This will delete all fingerprints, your settings and your WiFi configuration. Are you sure you wanna do that?')">Factory-Reset</button>
+		</div>
+	  </div>
+
+	</fieldset>
+	</form>
+
+
+	<p></p>
+	<nav class="navbar navbar-default ">
+		<div class="container-fluid">
+		  <p class="navbar-text">FingerprintDoorbell, Version %VERSIONINFO%</p>
+		</div>
+	</nav>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WiFi Configuration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+</head>
+<body>
+	<h1>%HOSTNAME%</h1>
+	<div class="alert alert-danger" role="alert"><b>You are currently in WiFi configuration mode!</b></br></br>In this mode the device acts as a WiFi access point to which you can temporarily connect to with your smartphone/pc
+	for configuring the access to your regular WiFi network. <br><br>
+	After saving the new WiFi configuration the device will restart and try to connect to your network.	If this fails the device will not go back to WiFi config mode automatically. You have to put the device manually in WiFi config mode by press and hold the sensor surface for 10 s while powering up the device.
+	</div>
+	
+	<form class="form-horizontal" action="/save">
+	<fieldset>
+
+	<!-- Form Name -->
+	<legend>WiFi Configuration</legend>
+
+	<!-- Text input-->
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="ssid">SSID</label>  
+		<div class="col-md-6">
+		<input id="ssid" name="ssid" type="text" placeholder="SSID of your WiFi network" class="form-control input-md" value="%WIFI_SSID%" required>
+		</div>
+	</div>
+
+	<!-- Text input-->
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="password">WiFi Password</label>  
+		<div class="col-md-8">
+		<input id="password" name="password" type="text" placeholder="Password of your WiFi network" class="form-control input-md" value="%WIFI_PASSWORD%" required>
+		<small class="text-muted">For security reason the current password is not displayed here, but you can set a new one.</small>
+		</div>
+	</div>
+
+	<!-- Text input-->
+	<div class="form-group">
+		<label class="col-md-4 control-label" for="hostname">Hostname</label>  
+		<div class="col-md-8">
+		<input id="hostname" name="hostname" type="text" placeholder="Hostname of your FingerprintDoorbell" class="form-control input-md" value="%HOSTNAME%" required>
+		<small class="text-muted">The name under which this device will be available in your network. Also used in the title of the web frontend. <br>Hint: just leave it "FingerprintDoorbell" unless you have multiple devices and want to differentiate between them.</small>		
+		</div>
+	</div>
+	  
+	<!-- Button (Double) -->
+	<div class="form-group">
+	  <label class="col-md-4 control-label" for="save"></label>
+	  <div class="col-md-8">
+		<button id="save" name="save" class="btn btn-success">Save and restart</button>
+	  </div>
+	</div>
+
+	</fieldset>
+	</form>
+
+</body>
+</html>
