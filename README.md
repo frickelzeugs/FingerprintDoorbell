@@ -17,12 +17,15 @@ If you put your finger on the sensor the system looks for a matching fingerprint
 - fingerprint reader Grow R503 (available at https://de.aliexpress.com/i/33053783539.html)
 - an ESP32 microcontroller (I would prefer the mini-version, because of it's compact size, e.g. available here https://de.aliexpress.com/item/1005001621844145.html or from any other dealer of your trust)
 
-...to be continued
-
 # How to build it
 ## Wiring
 <img  src="https://raw.githubusercontent.com/frickelzeugs/FingerprintDoorbell/master/doc/images/wiring.png"  width="500">
 
 I would not solder the cables directly to the ESP32 but recommend using a connector between ESP32 and Sensor. Otherwise, the cables must first be fed through the 25mm hole for the sensor and then soldered on. Replacing the Sensor will be a pain then. The original plug used on the sensor is a 6-pin Micro JST SH 1.00mm but it'll be fine to use any other 6-pin connector that you have on hand if you replace both sides.
 
+Just as an inpiration:
+<img  src="https://raw.githubusercontent.com/frickelzeugs/FingerprintDoorbell/master/doc/images/esp32-shield.jpg"  width="300">
+I made a small shield board for the ESP32 mini that contains a 6 pin Micro JST SH 1.00mm socket, a DC-DC step down converter and some screw terminals for the power supply (in my case 24V DC). So I'm now able to easily replace the sensor or ESP32 without touching my soldering iron.
 
+# Flashing the firmware
+...to be continued
