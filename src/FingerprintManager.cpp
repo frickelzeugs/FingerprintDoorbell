@@ -38,14 +38,7 @@ bool FingerprintManager::connect() {
     Serial.print(F("Baud rate: ")); Serial.println(finger.baud_rate);
 
     finger.getTemplateCount();
-
-    if (finger.templateCount == 0) {
-        Serial.print("Sensor doesn't contain any fingerprint data. Please run the 'enroll' example.");
-    }
-    else {
-        Serial.println("Waiting for valid finger...");
-        Serial.print("Sensor contains "); Serial.print(finger.templateCount); Serial.println(" templates");
-    }
+    Serial.print("Sensor contains "); Serial.print(finger.templateCount); Serial.println(" templates");
 
     loadFingerListFromPrefs();
 
