@@ -130,19 +130,24 @@ Match FingerprintManager::scanFingerprint() {
             // no finger on sensor but ring was touched -> ring event
             //Serial.println("ring touched");
             updateTouchState(true);
-            if (imagingPass < 15) // up to 10 image passes in a row are taken after touch ring was touched until noFinger will raise a noMatchFound event
+            if (imagingPass < 15) // up to x image passes in a row are taken after touch ring was touched until noFinger will raise a noMatchFound event
             {
               doImaging = true; // scan another image
               //delay(50);
               break;
             } else {
-              //Serial.println("10 times no image after touching ring");
+              //Serial.println("15 times no image after touching ring");
               match.scanResult = ScanResult::noMatchFound;
               return match;
             }
           } else  {
-            match.scanResult = ScanResult::noFinger;
-            updateTouchState(false);
+            if (ignoreTouchRing && scanPass > 1) {
+              // the scan(s) in last iteration(s) have not found any match, now the finger was released (=no finger) -> return "no match" as result
+              match.scanResult = ScanResult::noMatchFound;
+            } else {
+              match.scanResult = ScanResult::noFinger;
+              updateTouchState(false);
+            }
             return match;
           }
         case FINGERPRINT_IMAGEFAIL:
@@ -370,7 +375,7 @@ void FingerprintManager::deleteFinger(int id) {
   if ((id > 0) && (id <= 200)) {
     int8_t result = finger.deleteModel(id);
     if (result != FINGERPRINT_OK) {
-      Serial.println(String("Delete of finger template #") + id + " from sensor failed");
+      notifyClients(String("Delete of finger template #") + id + " from sensor failed with code " + result);
       return;
 
     } else {
@@ -452,6 +457,34 @@ void FingerprintManager::setLedRingReady() {
     finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
   else
     finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
+}
+
+bool FingerprintManager::deleteAll() {
+  if (finger.emptyDatabase() == FINGERPRINT_OK)
+  {
+    bool rc;
+    Preferences preferences;
+    rc = preferences.begin("fingerList", false); 
+    if (rc)
+        rc = preferences.clear();
+    preferences.end();
+    return rc;
+  }
+  else
+    return false;
+
+}
+
+
+
+void FingerprintManager::writeNotepad(String text) {
+  
+}
+
+
+String FingerprintManager::readNotepad() {
+  String text;
+  return text;
 }
 
 

@@ -64,3 +64,24 @@ bool SettingsManager::isWifiConfigured() {
     else
         return true;
 }
+
+bool SettingsManager::deleteAppSettings() {
+    bool rc;
+    Preferences preferences;
+    rc = preferences.begin("appSettings", false); 
+    if (rc)
+        rc = preferences.clear();
+    preferences.end();
+    return rc;
+}
+
+bool SettingsManager::deleteWifiSettings() {
+    bool rc;
+    Preferences preferences;
+    rc = preferences.begin("wifiSettings", false); 
+    if (rc)
+        rc = preferences.clear();
+    preferences.end();
+    return rc;
+}
+

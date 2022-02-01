@@ -13,7 +13,7 @@
 #include "SettingsManager.h"
 #include "global.h"
 
-enum class Mode { scan, enroll, wificonfig };
+enum class Mode { scan, enroll, wificonfig, maintenance };
 
 const char* VersionInfo = "0.1";
 
@@ -40,6 +40,7 @@ Mode currentMode = Mode::scan;
 
 FingerprintManager fingerManager;
 SettingsManager settingsManager;
+bool needMaintenanceMode = false;
 
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
@@ -85,6 +86,20 @@ String getTimestampString(){
   return datetime;
 }
 
+/* wait for maintenance mode or timeout 5s */
+bool waitForMaintenanceMode() {
+  needMaintenanceMode = true;
+  unsigned long startMillis = millis();
+  while (currentMode != Mode::maintenance) {
+    if ((millis() - startMillis) >= 5000ul) {
+      needMaintenanceMode = false;
+      return false;
+    }
+    delay(50);
+  }
+  needMaintenanceMode = false;
+  return true;
+}
 
 // Replaces placeholder in HTML pages
 String processor(const String& var){
@@ -214,7 +229,7 @@ void startWebserver(){
 
     webServer.onNotFound([](AsyncWebServerRequest *request){
       AsyncResponseStream *response = request->beginResponseStream("text/html");
-      response->print("<!DOCTYPE html><html><head><title>FingerprintDoorbell</title></head><body>");
+      response->printf("<!DOCTYPE html><html><head><title>FingerprintDoorbell</title><meta http-equiv=\"refresh\" content=\"0; url=http://%s\" /></head><body>", WiFi.softAPIP().toString().c_str());
       response->printf("<p>Please configure your WiFi settings <a href='http://%s'>here</a> to connect FingerprintDoorbell to your home network.</p>", WiFi.softAPIP().toString().c_str());
       response->print("</body></html>");
       request->send(response);
@@ -258,7 +273,9 @@ void startWebserver(){
         if(request->hasArg("btnDelete"))
         {
           int id = request->arg("selectedFingerprint").toInt();
+          waitForMaintenanceMode();
           fingerManager.deleteFinger(id);
+          currentMode = Mode::scan;
         }
         else if (request->hasArg("btnRename"))
         {
@@ -292,9 +309,19 @@ void startWebserver(){
     webServer.on("/factoryReset", HTTP_GET, [](AsyncWebServerRequest *request){
       if(request->hasArg("btnFactoryReset"))
       {
-        notifyClients("Factory reset is not implemented yet!");
+        notifyClients("Factory reset initiated...");
+        
+        if (!fingerManager.deleteAll())
+          notifyClients("Finger database could not be deleted.");
+        
+        if (!settingsManager.deleteAppSettings())
+          notifyClients("App settings could not be deleted.");
+
+        if (!settingsManager.deleteWifiSettings())
+          notifyClients("Wifi settings could not be deleted.");
+        
         request->redirect("/");  
-        //shouldReboot = true;
+        shouldReboot = true;
       } else {
         request->send(SPIFFS, "/settings.html", String(), false, processor);
       }
@@ -451,6 +478,19 @@ void doEnroll()
   }
 }
 
+void reboot()
+{
+  notifyClients("System is rebooting now...");
+  delay(1000);
+    
+  mqttClient.disconnect();
+  espClient.stop();
+  dnsServer.stop();
+  webServer.end();
+  WiFi.disconnect();
+  ESP.restart();
+}
+
 
 void setup()
 {
@@ -518,15 +558,7 @@ void loop()
 {
   // shouldReboot flag for supporting reboot through webui
   if (shouldReboot) {
-    notifyClients("System is rebooting now...");
-    delay(1000);
-    
-    mqttClient.disconnect();
-    espClient.stop();
-    dnsServer.stop();
-    webServer.end();
-    WiFi.disconnect();
-    ESP.restart();
+    reboot();
   }
   
 
@@ -569,8 +601,16 @@ void loop()
   case Mode::wificonfig:
     dnsServer.processNextRequest(); // used for captive portal redirect
     break;
+
+  case Mode::maintenance:
+    // do nothing, give webserver exclusive access to sensor (not thread-safe for concurrent calls)
+    break;
+
   }
-  
+
+  // enter maintenance mode (no continous scanning) if requested
+  if (needMaintenanceMode)
+    currentMode = Mode::maintenance;
 
 }
 

@@ -7,6 +7,10 @@
 
 #define mySerial Serial2
 
+#define FINGERPRINT_WRITENOTEPAD 0x18 // Write Notepad on sensor
+#define FINGERPRINT_READNOTEPAD 0x19 // Read Notepad from sensor
+
+
 /*
   By using the touch ring as an additional input to the image sensor the sensitivity is much higher for door bell ring events. Unfortunately
   we cannot differ between touches on the ring by fingers or rain drops, so rain on the ring will cause false alarms.
@@ -37,11 +41,14 @@ class FingerprintManager {
     int fingerCountOnSensor = 0;
     bool ignoreTouchRing = false; // set to true when the sensor is usually exposed to rain to avoid false ring events. Can also be set conditional by a rain sensor over MQTT
     bool lastIgnoreTouchRing = false;
-
+    
     void updateTouchState(bool touched);
     bool isRingTouched();
     void loadFingerListFromPrefs();
     void disconnect();
+    void writeNotepad(String text);
+    String readNotepad();
+
 
   public:
     bool connected;
@@ -56,6 +63,9 @@ class FingerprintManager {
     void setLedRingError();
     void setLedRingWifiConfig();
     void setLedRingReady();
+    
+    bool deleteAll();
+
     
     // functions for sensor replacement
     void exportSensorDB();

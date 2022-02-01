@@ -38,6 +38,9 @@ class SettingsManager {
 
     bool isWifiConfigured();
 
+    bool deleteAppSettings();
+    bool deleteWifiSettings();
+
 };
 
 #endif
