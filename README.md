@@ -121,6 +121,12 @@ todo
 ## Configure MQTT connection
 todo
 
+## Firmware Update
+If you've managed to walk the bumpy path of flashing the firmware on the ESP32 for the first time, be calmed: every further firmware update will be a piece of cake. FingerprintDoorbell is using the Library Elegant OTA to make this as handy as possible. You don't even have to pull out the micro controller of the wall and connect it to your computer by USB, because the "OTA" in "Elegant OTA" is for Over-the-air updates. All you need to do is to go on the settings page of the WebUI and hit "Firmware update". In the following Dialog you have to upload two files
+- firmware.bin for the "Firmware" radio button
+- spiffs.bin for the "Filesystem" radio button
+Done. Reboot your system to get the new firmware live.
+
 # FAQ
 ## What does the different colors/blinking styles of the LED ring mean?
 |LED ring color| sequence | Meaning | 
