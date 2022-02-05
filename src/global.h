@@ -4,5 +4,6 @@
 #include <WString.h>
 
 extern void notifyClients(String message);
+extern String getTimestampString();
 
 #endif

@@ -149,7 +149,48 @@ void updateClientsFingerlist(String fingerlist) {
   events.send(fingerlist.c_str(),"fingerlist",millis(),1000);
 }
 
+bool checkPairingValid() {
+  AppSettings settings = settingsManager.getAppSettings();
 
+   if (!settings.sensorPairingValid) {
+     Serial.println("Pairing has been invalidated previously.");   
+     return false;
+   }
+
+  String actualSensorPairingCode = fingerManager.getPairingCode();
+  //Serial.println("Awaited pairing code: " + settings.sensorPairingCode);
+  //Serial.println("Actual pairing code: " + actualSensorPairingCode);
+
+  if (actualSensorPairingCode.equals(settings.sensorPairingCode))
+    return true;
+  else {
+    if (!actualSensorPairingCode.isEmpty()) { 
+      // An empty code means there was a communication problem. So we don't have a valid code, but maybe next read will succeed and we get one again.
+      // But here we just got an non-empty pairing code that was different to the awaited one. So don't expect that will change in future until repairing was done.
+      // -> invalidate pairing for security reasons
+      AppSettings settings = settingsManager.getAppSettings();
+      settings.sensorPairingValid = false;
+      settingsManager.saveAppSettings(settings);
+    }
+    return false;
+  }
+}
+
+
+void doPairing() {
+  String newPairingCode = settingsManager.generateNewPairingCode();
+
+  if (fingerManager.setPairingCode(newPairingCode)) {
+    AppSettings settings = settingsManager.getAppSettings();
+    settings.sensorPairingCode = newPairingCode;
+    settings.sensorPairingValid = true;
+    settingsManager.saveAppSettings(settings);
+    notifyClients("Pairing successful.");
+  } else {
+    notifyClients("Pairing failed.");
+  }
+
+}
  
 bool initWifi() {
   // Connect to Wi-Fi
@@ -213,14 +254,14 @@ void startWebserver(){
       if(request->hasArg("hostname"))
       {
         Serial.println("Save wifi config");
-        WifiSettings newSettings;
-        newSettings.hostname = request->arg("hostname");
-        newSettings.ssid = request->arg("ssid");
+        WifiSettings settings = settingsManager.getWifiSettings();
+        settings.hostname = request->arg("hostname");
+        settings.ssid = request->arg("ssid");
         if (request->arg("password").equals("********")) // password is replaced by wildcards when given to the browser, so if the user didn't changed it, don't save it
-          newSettings.password = settingsManager.getWifiSettings().password; // use the old, already saved, one
+          settings.password = settingsManager.getWifiSettings().password; // use the old, already saved, one
         else
-          newSettings.password = request->arg("password");
-        settingsManager.setWifiSettings(newSettings);
+          settings.password = request->arg("password");
+        settingsManager.saveWifiSettings(settings);
         shouldReboot = true;
       }
       request->redirect("/");
@@ -291,19 +332,32 @@ void startWebserver(){
       if(request->hasArg("btnSaveSettings"))
       {
         Serial.println("Save settings");
-        AppSettings newSettings;
-        newSettings.mqttServer = request->arg("mqtt_server");
-        newSettings.mqttUsername = request->arg("mqtt_username");
-        newSettings.mqttPassword = request->arg("mqtt_password");
-        newSettings.mqttRootTopic = request->arg("mqtt_rootTopic");
-        newSettings.ntpServer = request->arg("ntpServer");
-        settingsManager.setAppSettings(newSettings);
+        AppSettings settings = settingsManager.getAppSettings();
+        settings.mqttServer = request->arg("mqtt_server");
+        settings.mqttUsername = request->arg("mqtt_username");
+        settings.mqttPassword = request->arg("mqtt_password");
+        settings.mqttRootTopic = request->arg("mqtt_rootTopic");
+        settings.ntpServer = request->arg("ntpServer");
+        settingsManager.saveAppSettings(settings);
         request->redirect("/");  
         shouldReboot = true;
       } else {
         request->send(SPIFFS, "/settings.html", String(), false, processor);
       }
     });
+
+
+    webServer.on("/pairing", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(request->hasArg("btnDoPairing"))
+      {
+        Serial.println("Do (re)pairing");
+        doPairing();
+        request->redirect("/");  
+      } else {
+        request->send(SPIFFS, "/settings.html", String(), false, processor);
+      }
+    });
+
 
 
     webServer.on("/factoryReset", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -430,11 +484,15 @@ void doScan()
     case ScanResult::matchFound:
       notifyClients( String("Match Found ID #") + match.matchId + " with confidence of " + match.matchConfidence );
       if (match.scanResult != lastMatch.scanResult) {
-        mqttClient.publish((String(mqttRootTopic) + "/ring").c_str(), "off");
-        mqttClient.publish((String(mqttRootTopic) + "/matchId").c_str(), String(match.matchId).c_str());
-        mqttClient.publish((String(mqttRootTopic) + "/matchName").c_str(), match.matchName.c_str());
-        mqttClient.publish((String(mqttRootTopic) + "/matchConfidence").c_str(), String(match.matchConfidence).c_str());
-        Serial.println("MQTT message sent: Open the door!");
+        if (checkPairingValid()) {
+          mqttClient.publish((String(mqttRootTopic) + "/ring").c_str(), "off");
+          mqttClient.publish((String(mqttRootTopic) + "/matchId").c_str(), String(match.matchId).c_str());
+          mqttClient.publish((String(mqttRootTopic) + "/matchName").c_str(), match.matchName.c_str());
+          mqttClient.publish((String(mqttRootTopic) + "/matchConfidence").c_str(), String(match.matchConfidence).c_str());
+          Serial.println("MQTT message sent: Open the door!");
+        } else {
+          notifyClients("Security issue! Match was not sent by MQTT because of invalid sensor pairing! This could potentially be an attack! If the sensor is new or has been replaced by you do a (re)pairing in settings page.");
+        }
       }
       delay(3000); // wait some time before next scan to let the LED blink
       break;
@@ -478,6 +536,8 @@ void doEnroll()
   }
 }
 
+
+
 void reboot()
 {
   notifyClients("System is rebooting now...");
@@ -507,6 +567,9 @@ void setup()
 
   fingerManager.connect();
   
+  if (!checkPairingValid())
+    notifyClients("Security issue! Pairing with sensor is invalid. This could potentially be an attack! If the sensor is new or has been replaced by you do a (re)pairing in settings page. MQTT messages regarding matching fingerprints will not been sent until pairing is valid again.");
+
   if (fingerManager.isFingerOnSensor() || !settingsManager.isWifiConfigured())
   {
     // ring touched during startup or no wifi settings stored -> wifi config mode
@@ -552,7 +615,6 @@ void setup()
   }
   
 }
-
 
 void loop()
 {

@@ -15,7 +15,10 @@ struct AppSettings {
     String mqttUsername = "";
     String mqttPassword = "";
     String mqttRootTopic = "fingerprintDoorbell";
-    String ntpServer = "pool.ntp.org";  
+    String ntpServer = "pool.ntp.org";
+    String sensorPin = "00000000";
+    String sensorPairingCode = "";
+    bool   sensorPairingValid = false;
 };
 
 class SettingsManager {       
@@ -31,15 +34,17 @@ class SettingsManager {
     void loadAppSettings();
 
     WifiSettings getWifiSettings();
-    void setWifiSettings(WifiSettings newSettings);
+    void saveWifiSettings(WifiSettings newSettings);
     
     AppSettings getAppSettings();
-    void setAppSettings(AppSettings newSettings);
+    void saveAppSettings(AppSettings newSettings);
 
     bool isWifiConfigured();
 
     bool deleteAppSettings();
     bool deleteWifiSettings();
+
+    String generateNewPairingCode();
 
 };
 

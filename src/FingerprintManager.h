@@ -46,8 +46,9 @@ class FingerprintManager {
     bool isRingTouched();
     void loadFingerListFromPrefs();
     void disconnect();
-    void writeNotepad(String text);
-    String readNotepad();
+    uint8_t writeNotepad(uint8_t pageNumber, const char *text, uint8_t length);
+    uint8_t readNotepad(uint8_t pageNumber, char *text, uint8_t length);
+    
 
 
   public:
@@ -63,6 +64,8 @@ class FingerprintManager {
     void setLedRingError();
     void setLedRingWifiConfig();
     void setLedRingReady();
+    String getPairingCode();
+    bool setPairingCode(String pairingCode);
     
     bool deleteAll();
 

@@ -108,7 +108,7 @@ Hard resetting via RTS pin...
 
 Your device should now boot up and the LED ring should start flashing slowly red ("breathing") to signal that it's currently in WiFi Config mode. Proceed with the configuration of the device.
 
-## Build and flash with Visual Studio Code and PlattformIO
+## Method 2: build and flash with Visual Studio Code and PlattformIO
 todo
 
 # Configuration
@@ -122,9 +122,11 @@ todo
 todo
 
 ## Firmware Update
-If you've managed to walk the bumpy path of flashing the firmware on the ESP32 for the first time, be calmed: every further firmware update will be a piece of cake. FingerprintDoorbell is using the Library Elegant OTA to make this as handy as possible. You don't even have to pull out the micro controller of the wall and connect it to your computer by USB, because the "OTA" in "Elegant OTA" is for Over-the-air updates. All you need to do is to go on the settings page of the WebUI and hit "Firmware update". In the following Dialog you have to upload two files
+If you've managed to walk the bumpy path of flashing the firmware on the ESP32 for the first time, be calmed: every further firmware update will be a piece of cake. FingerprintDoorbell is using the really cool Library [AsyncElegantOTA](https://github.com/ayushsharma82/AsyncElegantOTA) to make this as handy as possible. You don't even have to pull the microcontroller out of the wall and connect it to your computer, because the "OTA" in "AsyncElegantOTA" is for "Over-the-air" updates. All you need to do is to browse to the settings page of the WebUI and hit "Firmware update". In the following Dialog you have to upload 2 files
+
 - firmware.bin for the "Firmware" radio button
 - spiffs.bin for the "Filesystem" radio button
+
 Done. Reboot your system to get the new firmware live.
 
 # FAQ

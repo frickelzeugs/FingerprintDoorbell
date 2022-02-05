@@ -240,7 +240,7 @@ NewFinger FingerprintManager::enrollFinger(int id, String name) {
   NewFinger newFinger;
   newFinger.enrollResult = EnrollResult::error;
 
-  lastTouchState = true; // HACK: after enrollment, scan mode kicks in again. Force update of the ring light back to normal on first iteration of scan mode.
+  lastTouchState = true; // after enrollment, scan mode kicks in again. Force update of the ring light back to normal on first iteration of scan mode.
 
   
   notifyClients(String("Enrollment for id #") + id + " started. We need to scan your finger 5 times until enrollment is completed.");
@@ -470,16 +470,68 @@ bool FingerprintManager::deleteAll() {
 
 
 
-void FingerprintManager::writeNotepad(String text) {
+uint8_t FingerprintManager::writeNotepad(uint8_t pageNumber, const char *text, uint8_t length) {
+  uint8_t data[34];
   
+  if (length>32)
+    length = 32;
+
+  data[0] = FINGERPRINT_WRITENOTEPAD;
+  data[1] = pageNumber;
+  for (int i=0; i<length; i++)
+    data[i+2] = text[i];
+
+  Adafruit_Fingerprint_Packet packet(FINGERPRINT_COMMANDPACKET, sizeof(data), data);                                    
+  finger.writeStructuredPacket(packet);
+  if (finger.getStructuredPacket(&packet) != FINGERPRINT_OK)
+    return FINGERPRINT_PACKETRECIEVEERR;
+  if (packet.type != FINGERPRINT_ACKPACKET)
+    return FINGERPRINT_PACKETRECIEVEERR;
+  return packet.data[0];
 }
 
 
-String FingerprintManager::readNotepad() {
-  String text;
-  return text;
+uint8_t FingerprintManager::readNotepad(uint8_t pageNumber, char *text, uint8_t length) {
+  uint8_t data[2];
+
+  data[0] = FINGERPRINT_READNOTEPAD;
+  data[1] = pageNumber;
+
+  Adafruit_Fingerprint_Packet packet(FINGERPRINT_COMMANDPACKET, sizeof(data), data);                                    
+  finger.writeStructuredPacket(packet);
+  if (finger.getStructuredPacket(&packet) != FINGERPRINT_OK)
+    return FINGERPRINT_PACKETRECIEVEERR;
+  if (packet.type != FINGERPRINT_ACKPACKET)
+    return FINGERPRINT_PACKETRECIEVEERR;
+  
+  if (packet.data[0] == FINGERPRINT_OK) {
+    // read data payload
+    for (uint8_t i=0; i<length; i++) {
+      text[i] = packet.data[i+1];
+    }
+  }
+
+  return packet.data[0];
+
 }
 
+
+String FingerprintManager::getPairingCode() {
+  char buffer[33];
+  buffer[32] = 0; // null termination needed for convertion to string at the end
+  if (readNotepad(0, (char*)buffer, 32) == FINGERPRINT_OK)
+    return String((char*)buffer);
+  else
+    return "";
+}
+
+
+bool FingerprintManager::setPairingCode(String pairingCode) {
+  if (writeNotepad(0, pairingCode.c_str(), 32) == FINGERPRINT_OK)
+    return true;
+  else
+    return false;
+}
 
 
 // ToDo: support sensor replacement by enable transferring of sensor DB to another sensor
