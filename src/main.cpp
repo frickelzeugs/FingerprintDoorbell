@@ -15,7 +15,7 @@
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
-const char* VersionInfo = "0.2";
+const char* VersionInfo = "0.3";
 
 // ===================================================================================================================
 // Caution: below are not the credentials for connecting to your home network, they are for the Access Point mode!!!
@@ -149,12 +149,36 @@ void updateClientsFingerlist(String fingerlist) {
   events.send(fingerlist.c_str(),"fingerlist",millis(),1000);
 }
 
+
+bool doPairing() {
+  String newPairingCode = settingsManager.generateNewPairingCode();
+
+  if (fingerManager.setPairingCode(newPairingCode)) {
+    AppSettings settings = settingsManager.getAppSettings();
+    settings.sensorPairingCode = newPairingCode;
+    settings.sensorPairingValid = true;
+    settingsManager.saveAppSettings(settings);
+    notifyClients("Pairing successful.");
+    return true;
+  } else {
+    notifyClients("Pairing failed.");
+    return false;
+  }
+
+}
+
+
 bool checkPairingValid() {
   AppSettings settings = settingsManager.getAppSettings();
 
    if (!settings.sensorPairingValid) {
-     Serial.println("Pairing has been invalidated previously.");   
-     return false;
+     if (settings.sensorPairingCode.isEmpty()) {
+       // first boot, do pairing automatically so the user does not have to do this manually
+       return doPairing();
+     } else {
+      Serial.println("Pairing has been invalidated previously.");   
+      return false;
+     }
    }
 
   String actualSensorPairingCode = fingerManager.getPairingCode();
@@ -177,21 +201,6 @@ bool checkPairingValid() {
 }
 
 
-void doPairing() {
-  String newPairingCode = settingsManager.generateNewPairingCode();
-
-  if (fingerManager.setPairingCode(newPairingCode)) {
-    AppSettings settings = settingsManager.getAppSettings();
-    settings.sensorPairingCode = newPairingCode;
-    settings.sensorPairingValid = true;
-    settingsManager.saveAppSettings(settings);
-    notifyClients("Pairing successful.");
-  } else {
-    notifyClients("Pairing failed.");
-  }
-
-}
- 
 bool initWifi() {
   // Connect to Wi-Fi
   WifiSettings wifiSettings = settingsManager.getWifiSettings();
@@ -482,7 +491,7 @@ void doScan()
       }
       break; 
     case ScanResult::matchFound:
-      notifyClients( String("Match Found ID #") + match.matchId + " with confidence of " + match.matchConfidence );
+      notifyClients( String("Match Found: ") + match.matchId + " - " + match.matchName  + " with confidence of " + match.matchConfidence );
       if (match.scanResult != lastMatch.scanResult) {
         if (checkPairingValid()) {
           mqttClient.publish((String(mqttRootTopic) + "/ring").c_str(), "off");
