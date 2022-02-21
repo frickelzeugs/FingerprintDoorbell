@@ -114,8 +114,11 @@ Match FingerprintManager::scanFingerprint() {
       match.returnCode = finger.getImage();
       switch (match.returnCode) {
         case FINGERPRINT_OK:
+          // Important: do net set touch state to true yet! Reason:
+          // - if touchRing is NOT ignored, updateTouchState(true) was already called a few lines up, ring is already flashing red
+          // - if touchRing IS ignored, wait for next step because image still can be "too messy" (=raindrop on sensor), and we don't want to flash red in this case
+          //updateTouchState(true);
           //Serial.println("Image taken");
-          updateTouchState(true);
           break;
         case FINGERPRINT_NOFINGER:
         case FINGERPRINT_PACKETRECIEVEERR: // occurs from time to time, handle it like a "nofinger detected but touched" situation
@@ -161,6 +164,7 @@ Match FingerprintManager::scanFingerprint() {
     switch (match.returnCode) {
       case FINGERPRINT_OK:
         //Serial.println("Image converted");
+        updateTouchState(true);
         break;
       case FINGERPRINT_IMAGEMESS:
         Serial.println("Image too messy");
@@ -433,8 +437,15 @@ bool FingerprintManager::isRingTouched() {
 }
 
 bool FingerprintManager::isFingerOnSensor() {
+  // get an image
   uint8_t returnCode = finger.getImage();
-  return (returnCode == FINGERPRINT_OK);
+  if (returnCode == FINGERPRINT_OK) {
+    // try to find fingerprint features in image, because image taken does not already means finger on sensor, could also be a raindrop
+    returnCode = finger.image2Tz();
+    if (returnCode == FINGERPRINT_OK)
+      return true;
+  }
+  return false;
 }
   
 void FingerprintManager::setLedRingError() {
