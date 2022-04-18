@@ -109,7 +109,10 @@ Hard resetting via RTS pin...
 Your device should now boot up and the LED ring should start flashing slowly red ("breathing") to signal that it's currently in WiFi Config mode. Proceed with the configuration of the device.
 
 ## Method 2: build and flash with Visual Studio Code and PlattformIO
-todo
+Method 1 is the prefered way if you just want a ready to use version of your FingerprintDoorbell. But if you want to build it on your own or maybe modify the code in some way to fit your needs please follow the instructions below. I don't want to go into details here and assume that you already have experience with IDEs or using Git repos:
+* Download and install [Visual Studio Code and PlattformIO Extension](https://platformio.org/platformio-ide).
+* Clone the FingerprintDoorbell repository from GitHub
+* ...
 
 # Configuration
 ## WiFi Connection
