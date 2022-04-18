@@ -30,8 +30,8 @@ class SettingsManager {
     void saveAppSettings();
 
   public:
-    void loadWifiSettings();
-    void loadAppSettings();
+    bool loadWifiSettings();
+    bool loadAppSettings();
 
     WifiSettings getWifiSettings();
     void saveWifiSettings(WifiSettings newSettings);

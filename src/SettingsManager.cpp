@@ -1,27 +1,33 @@
 #include "SettingsManager.h"
 #include <Crypto.h>
 
-void SettingsManager::loadWifiSettings() {
+bool SettingsManager::loadWifiSettings() {
     Preferences preferences;
-    preferences.begin("wifiSettings", true); 
-    wifiSettings.ssid = preferences.getString("ssid", String(""));
-    wifiSettings.password = preferences.getString("password", String(""));
-    wifiSettings.hostname = preferences.getString("hostname", String("FingerprintDoorbell"));
-    preferences.end();
+    if (preferences.begin("wifiSettings", true)) {
+        wifiSettings.ssid = preferences.getString("ssid", String(""));
+        wifiSettings.password = preferences.getString("password", String(""));
+        wifiSettings.hostname = preferences.getString("hostname", String("FingerprintDoorbell"));
+        preferences.end();
+    } else {
+        return false;
+    }
 }
 
-void SettingsManager::loadAppSettings() {
+bool SettingsManager::loadAppSettings() {
     Preferences preferences;
-    preferences.begin("appSettings", true); 
-    appSettings.mqttServer = preferences.getString("mqttServer", String(""));
-    appSettings.mqttUsername = preferences.getString("mqttUsername", String(""));
-    appSettings.mqttPassword = preferences.getString("mqttPassword", String(""));
-    appSettings.mqttRootTopic = preferences.getString("mqttRootTopic", String("fingerprintDoorbell"));
-    appSettings.ntpServer = preferences.getString("ntpServer", String("pool.ntp.org"));
-    appSettings.sensorPin = preferences.getString("sensorPin", "00000000");
-    appSettings.sensorPairingCode = preferences.getString("pairingCode", "");
-    appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
-    preferences.end();
+    if (preferences.begin("appSettings", true)) {
+        appSettings.mqttServer = preferences.getString("mqttServer", String(""));
+        appSettings.mqttUsername = preferences.getString("mqttUsername", String(""));
+        appSettings.mqttPassword = preferences.getString("mqttPassword", String(""));
+        appSettings.mqttRootTopic = preferences.getString("mqttRootTopic", String("fingerprintDoorbell"));
+        appSettings.ntpServer = preferences.getString("ntpServer", String("pool.ntp.org"));
+        appSettings.sensorPin = preferences.getString("sensorPin", "00000000");
+        appSettings.sensorPairingCode = preferences.getString("pairingCode", "");
+        appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
+        preferences.end();
+    } else {
+        return false;
+    }
 }
    
 void SettingsManager::saveWifiSettings() {

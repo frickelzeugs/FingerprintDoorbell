@@ -452,10 +452,12 @@ void connectMqttClient() {
     bool connectResult;
     
     // connect with or witout authentication
+    String lastWillTopic = settingsManager.getAppSettings().mqttRootTopic + "/lastWill";
+    String lastWillMessage = "FingerprintDoorbell disconnected unexpectedly";
     if (settingsManager.getAppSettings().mqttUsername.isEmpty() || settingsManager.getAppSettings().mqttPassword.isEmpty())
-      connectResult = mqttClient.connect(settingsManager.getWifiSettings().hostname.c_str());
+      connectResult = mqttClient.connect(settingsManager.getWifiSettings().hostname.c_str(),lastWillTopic.c_str(), 1, false, lastWillMessage.c_str());
     else
-      connectResult = mqttClient.connect(settingsManager.getWifiSettings().hostname.c_str(), settingsManager.getAppSettings().mqttUsername.c_str(), settingsManager.getAppSettings().mqttPassword.c_str());
+      connectResult = mqttClient.connect(settingsManager.getWifiSettings().hostname.c_str(), settingsManager.getAppSettings().mqttUsername.c_str(), settingsManager.getAppSettings().mqttPassword.c_str(), lastWillTopic.c_str(), 1, false, lastWillMessage.c_str());
 
     if (connectResult) {
       // success
