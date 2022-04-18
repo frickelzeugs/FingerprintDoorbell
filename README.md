@@ -111,8 +111,14 @@ Your device should now boot up and the LED ring should start flashing slowly red
 ## Method 2: build and flash with Visual Studio Code and PlattformIO
 Method 1 is the prefered way if you just want a ready to use version of your FingerprintDoorbell. But if you want to build it on your own or maybe modify the code in some way to fit your needs please follow the instructions below. I don't want to go into details here and assume that you already have experience with IDEs or using Git repos:
 * Download and install [Visual Studio Code and PlattformIO Extension](https://platformio.org/platformio-ide).
-* Clone the FingerprintDoorbell repository from GitHub
-* ...
+* Install [Git](https://git-scm.com/downloads) if you don't have already
+* Clone this GitHub repo and open the project workspace in VS Code (you can do this in one step from within VS Code)
+* Open the PlatformIO extension from the left sided toolbar and from the "Project Tasks" tree choose
+  * esp32doit-devkit-v1 -> General -> Build (creates firmware.bin)
+  * esp32doit-devkit-v1 -> Platform -> Build Filesystem Image (creates spiffs.bin containing HTML and CSS files)
+* if the build finishes successfully you can start uploading to your ESP32 by using the following tasks
+  * esp32doit-devkit-v1 -> General -> Upload
+  * esp32doit-devkit-v1 -> Platform -> Upload Filesystem Image
 
 # Configuration
 ## WiFi Connection
