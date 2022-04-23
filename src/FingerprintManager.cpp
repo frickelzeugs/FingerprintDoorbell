@@ -383,7 +383,6 @@ void FingerprintManager::deleteFinger(int id) {
       preferences.end();
       Serial.println(String("Finger template #") + id + " deleted from sensor and prefs.");
 
-      // TODO update hash on sensor
     }
   }
 
@@ -472,6 +471,11 @@ bool FingerprintManager::deleteAll() {
     if (rc)
         rc = preferences.clear();
     preferences.end();
+
+    for (int i=1; i<=200; i++) {
+        fingerList[i] = String("@empty");
+    };
+    
     return rc;
   }
   else

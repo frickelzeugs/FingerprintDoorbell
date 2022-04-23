@@ -28,6 +28,15 @@ const long  gmtOffset_sec = 0; // UTC Time
 const int   daylightOffset_sec = 0; // UTC Time
 const int   doorbellOutputPin = 19; // pin connected to the doorbell (when using hardware connection instead of mqtt to ring the bell)
 
+#ifdef CUSTOM_GPIOS
+  const int   customOutput1 = 18; // not used internally, but can be set over MQTT
+  const int   customOutput2 = 26; // not used internally, but can be set over MQTT
+  const int   customInput1 = 21; // not used internally, but changes are published over MQTT
+  const int   customInput2 = 22; // not used internally, but changes are published over MQTT
+  bool customInput1Value = false;
+  bool customInput2Value = false;
+#endif
+
 const int logMessagesCount = 5;
 String logMessages[logMessagesCount]; // log messages, 0=most recent log message
 bool shouldReboot = false;
@@ -136,12 +145,13 @@ String processor(const String& var){
 
 // send LastMessage to websocket clients
 void notifyClients(String message) {
-  message = "[" + getTimestampString() + "]: " + message;
-  Serial.println(message);
-  addLogMessage(message);
+  String messageWithTimestamp = "[" + getTimestampString() + "]: " + message;
+  Serial.println(messageWithTimestamp);
+  addLogMessage(messageWithTimestamp);
   events.send(getLogMessagesAsHtml().c_str(),"message",millis(),1000);
-  //Serial.println("New message: " + getLogMessagesAsHtml());
-
+  
+  String mqttRootTopic = settingsManager.getAppSettings().mqttRootTopic;
+  mqttClient.publish((String(mqttRootTopic) + "/lastLogMessage").c_str(), message.c_str());
 }
 
 void updateClientsFingerlist(String fingerlist) {
@@ -391,6 +401,22 @@ void startWebserver(){
     });
 
 
+    webServer.on("/deleteAllFingerprints", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(request->hasArg("btnDeleteAllFingerprints"))
+      {
+        notifyClients("Deleting all fingerprints...");
+        
+        if (!fingerManager.deleteAll())
+          notifyClients("Finger database could not be deleted.");
+        
+        request->redirect("/");  
+        
+      } else {
+        request->send(SPIFFS, "/settings.html", String(), false, processor);
+      }
+    });
+
+
     webServer.onNotFound([](AsyncWebServerRequest *request){
       request->send(404);
     });
@@ -443,6 +469,25 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
     }
   }
 
+  #ifdef CUSTOM_GPIOS
+    if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/customOutput1") {
+      if(messageTemp == "on"){
+        digitalWrite(customOutput1, HIGH); 
+      }
+      else if(messageTemp == "off"){
+        digitalWrite(customOutput1, LOW); 
+      }
+    }
+    if (String(topic) == String(settingsManager.getAppSettings().mqttRootTopic) + "/customOutput2") {
+      if(messageTemp == "on"){
+        digitalWrite(customOutput2, HIGH); 
+      }
+      else if(messageTemp == "off"){
+        digitalWrite(customOutput2, LOW); 
+      }
+    }
+  #endif  
+
 }
 
 void connectMqttClient() {
@@ -452,7 +497,7 @@ void connectMqttClient() {
     bool connectResult;
     
     // connect with or witout authentication
-    String lastWillTopic = settingsManager.getAppSettings().mqttRootTopic + "/lastWill";
+    String lastWillTopic = settingsManager.getAppSettings().mqttRootTopic + "/lastLogMessage";
     String lastWillMessage = "FingerprintDoorbell disconnected unexpectedly";
     if (settingsManager.getAppSettings().mqttUsername.isEmpty() || settingsManager.getAppSettings().mqttPassword.isEmpty())
       connectResult = mqttClient.connect(settingsManager.getWifiSettings().hostname.c_str(),lastWillTopic.c_str(), 1, false, lastWillMessage.c_str());
@@ -464,6 +509,13 @@ void connectMqttClient() {
       Serial.println("connected");
       // Subscribe
       mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/ignoreTouchRing").c_str(), 1); // QoS = 1 (at least once)
+      #ifdef CUSTOM_GPIOS
+        mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput1").c_str(), 1); // QoS = 1 (at least once)
+        mqttClient.subscribe((settingsManager.getAppSettings().mqttRootTopic + "/customOutput2").c_str(), 1); // QoS = 1 (at least once)
+      #endif
+
+
+
     } else {
       if (mqttClient.state() == 4 || mqttClient.state() == 5) {
         mqttConfigValid = false;
@@ -570,8 +622,14 @@ void setup()
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
 
-  // initialize output pin
+  // initialize GPIOs
   pinMode(doorbellOutputPin, OUTPUT); 
+  #ifdef CUSTOM_GPIOS
+    pinMode(customOutput1, OUTPUT); 
+    pinMode(customOutput2, OUTPUT); 
+    pinMode(customInput1, INPUT_PULLDOWN);
+    pinMode(customInput2, INPUT_PULLDOWN);
+  #endif  
 
   settingsManager.loadWifiSettings();
   settingsManager.loadAppSettings();
@@ -634,7 +692,6 @@ void loop()
     reboot();
   }
   
-
   // Reconnect handling
   if (currentMode != Mode::wificonfig)
   {
@@ -684,6 +741,33 @@ void loop()
   // enter maintenance mode (no continous scanning) if requested
   if (needMaintenanceMode)
     currentMode = Mode::maintenance;
+
+  #ifdef CUSTOM_GPIOS
+    // read custom inputs and publish by MQTT
+    bool i1;
+    bool i2;
+    i1 = (digitalRead(customInput1) == HIGH);
+    i2 = (digitalRead(customInput2) == HIGH);
+
+    String mqttRootTopic = settingsManager.getAppSettings().mqttRootTopic;
+    if (i1 != customInput1Value) {
+        if (i1)
+          mqttClient.publish((String(mqttRootTopic) + "/customInput1").c_str(), "on");      
+        else
+          mqttClient.publish((String(mqttRootTopic) + "/customInput1").c_str(), "off");      
+    }
+
+    if (i2 != customInput2Value) {
+        if (i2)
+          mqttClient.publish((String(mqttRootTopic) + "/customInput2").c_str(), "on");      
+        else
+          mqttClient.publish((String(mqttRootTopic) + "/customInput2").c_str(), "off");  
+    }
+
+    customInput1Value = i1;
+    customInput2Value = i2;
+
+  #endif  
 
 }
 
