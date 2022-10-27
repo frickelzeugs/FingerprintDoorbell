@@ -6,7 +6,14 @@
 bool FingerprintManager::connect() {
   
     // initialize input pins
+    #if defined(ESP32)
     pinMode(touchRingPin, INPUT_PULLDOWN);
+    #endif
+
+    #if defined(ESP8266)
+    pinMode(touchRingPin,INPUT);
+    #endif
+    
 
     Serial.println("\n\nAdafruit finger detect test");
 
