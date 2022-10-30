@@ -281,8 +281,8 @@ void initWiFiAccessPointForConfiguration() {
 void startWebserver(){
   
   // Initialize SPIFFS
-  if(!SPIFFS.begin()){
-    Serial.println("An Error has occurred while mounting SPIFFS");
+  if(!SPIFFS.begin(true)){
+    Serial.println("An Error has occurred while mounting SPIFFS. Possibly you need to format the FS. See https://github.com/espressif/arduino-esp32/issues/638");
     return;
   }
 

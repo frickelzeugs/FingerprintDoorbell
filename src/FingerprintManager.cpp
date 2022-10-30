@@ -227,7 +227,7 @@ Match FingerprintManager::scanFingerprint() {
 // Preferences
 void FingerprintManager::loadFingerListFromPrefs() {
   Preferences preferences;
-  preferences.begin("fingerList", true); 
+  preferences.begin("fingerList", false); 
   int counter = 0;
   for (int i=1; i<=200; i++) {
     String key = String(i);
