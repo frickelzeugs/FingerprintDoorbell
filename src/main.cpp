@@ -239,6 +239,7 @@ bool checkPairingValid() {
 
 bool initWifi() {
   // Connect to Wi-Fi
+  Serial.println("Init Wifi");
   WifiSettings wifiSettings = settingsManager.getWifiSettings();
   WiFi.mode(WIFI_STA);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
@@ -266,6 +267,7 @@ bool initWifi() {
 }
 
 void initWiFiAccessPointForConfiguration() {
+  Serial.println("initWifiAP");
   WiFi.softAPConfig(WifiConfigIp, WifiConfigIp, IPAddress(255, 255, 255, 0));
   WiFi.softAP(WifiConfigSsid, WifiConfigPassword);
 
@@ -279,12 +281,27 @@ void initWiFiAccessPointForConfiguration() {
 
 
 void startWebserver(){
-  
+  Serial.println("startWebserver");
   // Initialize SPIFFS
-  if(!SPIFFS.begin(true)){
+  if(!SPIFFS.begin()){
     Serial.println("An Error has occurred while mounting SPIFFS. Possibly you need to format the FS. See https://github.com/espressif/arduino-esp32/issues/638");
+    //SPIFFS.format()
     return;
   }
+  String str = "";
+  Serial.println("SPIFFS begin successful. Listing Directories");
+  Dir dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+      str += dir.fileName();
+      str += " / ";
+      str += dir.fileSize();
+      str += "\r\n";
+  }
+  Serial.print(str);
+  Serial.println("SPIFFS begin successful. Listing Directories END.");
+
+
+
 
   // Init time by NTP Client
   configTime(gmtOffset_sec, daylightOffset_sec, settingsManager.getAppSettings().ntpServer.c_str());
