@@ -2,16 +2,42 @@
   Main of FingerprintDoorbell 
  ****************************************************/
 
-#include <WiFi.h>
+
+
 #include <DNSServer.h>
 #include <time.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
-#include <SPIFFS.h>
+#if defined(ESP32)
+#include "SPIFFS.h"
+#include <WiFi.h>
+#endif
+#if defined(ESP8266)
+#include <FS.h>
+#include <ESP8266wifi.h>
+#endif
 #include <PubSubClient.h>
 #include "FingerprintManager.h"
 #include "SettingsManager.h"
 #include "global.h"
+
+
+#if defined(ESP8266)
+bool getLocalTime(struct tm * info, uint32_t ms = 5000)
+{
+    uint32_t start = millis();
+    time_t now;
+    while((millis()-start) <= ms) {
+        time(&now);
+        localtime_r(&now, info);
+        if(info->tm_year > (2016 - 1900)){
+            return true;
+        }
+        delay(10);
+    }
+    return false;
+}
+#endif
 
 enum class Mode { scan, enroll, wificonfig, maintenance };
 
@@ -213,10 +239,16 @@ bool checkPairingValid() {
 
 bool initWifi() {
   // Connect to Wi-Fi
+  Serial.println("Init Wifi");
   WifiSettings wifiSettings = settingsManager.getWifiSettings();
   WiFi.mode(WIFI_STA);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  #if defined(ESP32)
   WiFi.setHostname(wifiSettings.hostname.c_str()); //define hostname
+  #endif
+  #if defined(ESP8266)
+  WiFi.hostname(wifiSettings.hostname.c_str()); //define hostname  
+  #endif
   WiFi.begin(wifiSettings.ssid.c_str(), wifiSettings.password.c_str());
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -235,6 +267,7 @@ bool initWifi() {
 }
 
 void initWiFiAccessPointForConfiguration() {
+  Serial.println("initWifiAP");
   WiFi.softAPConfig(WifiConfigIp, WifiConfigIp, IPAddress(255, 255, 255, 0));
   WiFi.softAP(WifiConfigSsid, WifiConfigPassword);
 
@@ -248,12 +281,27 @@ void initWiFiAccessPointForConfiguration() {
 
 
 void startWebserver(){
-  
+  Serial.println("startWebserver");
   // Initialize SPIFFS
-  if(!SPIFFS.begin(true)){
-    Serial.println("An Error has occurred while mounting SPIFFS");
+  if(!SPIFFS.begin()){
+    Serial.println("An Error has occurred while mounting SPIFFS. Possibly you need to format the FS. See https://github.com/espressif/arduino-esp32/issues/638");
+    //SPIFFS.format()
     return;
   }
+  String str = "";
+  Serial.println("SPIFFS begin successful. Listing Directories");
+  Dir dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+      str += dir.fileName();
+      str += " / ";
+      str += dir.fileSize();
+      str += "\r\n";
+  }
+  Serial.print(str);
+  Serial.println("SPIFFS begin successful. Listing Directories END.");
+
+
+
 
   // Init time by NTP Client
   configTime(gmtOffset_sec, daylightOffset_sec, settingsManager.getAppSettings().ntpServer.c_str());
@@ -553,6 +601,14 @@ void doScan()
           mqttClient.publish((String(mqttRootTopic) + "/matchName").c_str(), match.matchName.c_str());
           mqttClient.publish((String(mqttRootTopic) + "/matchConfidence").c_str(), String(match.matchConfidence).c_str());
           Serial.println("MQTT message sent: Open the door!");
+          #ifdef CUSTOM_GPIOS
+          if (strstr("GPIO", match.MatchName) != NULL){
+                 digitalWrite(customOutput1, HIGH); 
+                 delay(500);
+                 digitalWrite(customOutput1, LOW); 
+                 Serial.println("Triggering Custom GPIO");
+          }
+          #endif
         } else {
           notifyClients("Security issue! Match was not sent by MQTT because of invalid sensor pairing! This could potentially be an attack! If the sensor is new or has been replaced by you do a (re)pairing in settings page.");
         }
@@ -626,9 +682,15 @@ void setup()
   pinMode(doorbellOutputPin, OUTPUT); 
   #ifdef CUSTOM_GPIOS
     pinMode(customOutput1, OUTPUT); 
-    pinMode(customOutput2, OUTPUT); 
+    pinMode(customOutput2, OUTPUT);
+    #ifdef ESP32 
     pinMode(customInput1, INPUT_PULLDOWN);
     pinMode(customInput2, INPUT_PULLDOWN);
+    #endif
+    #ifdef ESP8266
+    pinMode(customInput1);
+    pinMode(customInput2);
+    #endif
   #endif  
 
   settingsManager.loadWifiSettings();

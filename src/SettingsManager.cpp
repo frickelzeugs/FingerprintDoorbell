@@ -8,6 +8,7 @@ bool SettingsManager::loadWifiSettings() {
         wifiSettings.password = preferences.getString("password", String(""));
         wifiSettings.hostname = preferences.getString("hostname", String("FingerprintDoorbell"));
         preferences.end();
+        return true;
     } else {
         return false;
     }
@@ -25,6 +26,7 @@ bool SettingsManager::loadAppSettings() {
         appSettings.sensorPairingCode = preferences.getString("pairingCode", "");
         appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
         preferences.end();
+        return true;
     } else {
         return false;
     }
@@ -104,7 +106,7 @@ String SettingsManager::generateNewPairingCode() {
     SHA256 hasher;
 
     /* Put some unique values as input in our new hash */
-    hasher.doUpdate( String(esp_random()).c_str() ); // random number
+    hasher.doUpdate( String(rand()).c_str() ); // random number // esp_rand() does not exist for esp8266
     hasher.doUpdate( String(millis()).c_str() ); // time since boot
     hasher.doUpdate(getTimestampString().c_str()); // current time (if NTP is available)
     hasher.doUpdate(appSettings.mqttUsername.c_str());

@@ -6,7 +6,14 @@
 bool FingerprintManager::connect() {
   
     // initialize input pins
+    #if defined(ESP32)
     pinMode(touchRingPin, INPUT_PULLDOWN);
+    #endif
+
+    #if defined(ESP8266)
+    pinMode(touchRingPin,INPUT);
+    #endif
+    
 
     Serial.println("\n\nAdafruit finger detect test");
 
@@ -220,6 +227,7 @@ Match FingerprintManager::scanFingerprint() {
 // Preferences
 void FingerprintManager::loadFingerListFromPrefs() {
   Preferences preferences;
+  Serial.println("loadFingerListFromPrefs");
   preferences.begin("fingerList", true); 
   int counter = 0;
   for (int i=1; i<=200; i++) {
@@ -378,6 +386,7 @@ void FingerprintManager::deleteFinger(int id) {
     } else {
       fingerList[id] = "@empty";
       Preferences preferences;
+      Serial.println("deleteFinger");
       preferences.begin("fingerList", false); 
       preferences.remove (String(id).c_str());
       preferences.end();
@@ -392,6 +401,7 @@ void FingerprintManager::deleteFinger(int id) {
 void FingerprintManager::renameFinger(int id, String newName) {
   if ((id > 0) && (id <= 200)) {
     Preferences preferences;
+    Serial.println("deleteFinger");
     preferences.begin("fingerList", false); 
     preferences.putString(String(id).c_str(), newName);
     preferences.end();
@@ -467,6 +477,7 @@ bool FingerprintManager::deleteAll() {
   {
     bool rc;
     Preferences preferences;
+    Serial.println("deletAll");
     rc = preferences.begin("fingerList", false); 
     if (rc)
         rc = preferences.clear();
