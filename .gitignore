@@ -5,3 +5,4 @@
 .vscode/ipch
 doc/wiring.pptx
 builds
+.DS_Store
