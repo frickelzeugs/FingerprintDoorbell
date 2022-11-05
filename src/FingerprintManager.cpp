@@ -54,7 +54,7 @@ void FingerprintManager::updateTouchState(bool touched)
       // check if sensor or ring is touched
       if (touched) {
         // turn touch indicator on:
-        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_RED, 0);
+        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_WHITE, 0);
       } else {
         // turn touch indicator off:
         setLedRingReady();
@@ -189,7 +189,8 @@ Match FingerprintManager::scanFingerprint() {
     match.returnCode = finger.fingerSearch();
     if (match.returnCode == FINGERPRINT_OK) {
         // found a match!
-        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_PURPLE);
+        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_GREEN);
+        // to use green add "#define FINGERPRINT_LED_GREEN 0x04      //!< Green LED" to  libdeps / esp32doit-devkit-v1 -> Adafruit Fingerprint Sensor Libary -> Adafruit_Fingerprint.h
         
         match.scanResult = ScanResult::matchFound;
         match.matchId = finger.fingerID;
@@ -457,9 +458,9 @@ void FingerprintManager::setLedRingWifiConfig() {
 
 void FingerprintManager::setLedRingReady() {
   if (!ignoreTouchRing)
-    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
+    finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_WHITE);
   else
-    finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
+    finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_WHITE); // just an indicator for me to see if touch ring is active or not
 }
 
 bool FingerprintManager::deleteAll() {

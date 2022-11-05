@@ -557,7 +557,7 @@ void doScan()
           notifyClients("Security issue! Match was not sent by MQTT because of invalid sensor pairing! This could potentially be an attack! If the sensor is new or has been replaced by you do a (re)pairing in settings page.");
         }
       }
-      delay(3000); // wait some time before next scan to let the LED blink
+      delay(1000); // wait some time before next scan to let the LED blink
       break;
     case ScanResult::noMatchFound:
       notifyClients(String("No Match Found (Code ") + match.returnCode + ")");
