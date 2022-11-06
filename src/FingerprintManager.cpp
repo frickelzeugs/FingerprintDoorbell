@@ -55,6 +55,7 @@ void FingerprintManager::updateTouchState(bool touched)
       if (touched) {
         // turn touch indicator on:
         finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_WHITE, 0);
+        // to use white add "#define FINGERPRINT_LED_WHITE 0x07      //!< Green LED" to  .pio -> libdeps / esp32doit-devkit-v1 -> Adafruit Fingerprint Sensor Libary -> Adafruit_Fingerprint.h
       } else {
         // turn touch indicator off:
         setLedRingReady();
