@@ -24,6 +24,10 @@ const char* WifiConfigSsid = "FingerprintDoorbell-Config"; // SSID used for WiFi
 const char* WifiConfigPassword = "12345678"; // password used for WiFi when in Access Point mode for configuration. Min. 8 chars needed!
 IPAddress   WifiConfigIp(192, 168, 4, 1); // IP of access point in wifi config mode
 
+// ====== UI Login Credentials ====== //
+const char* http_username = "admin";
+const char* http_password = "fingerprintdoorbell";
+
 const long  gmtOffset_sec = 0; // UTC Time
 const int   daylightOffset_sec = 0; // UTC Time
 const int   doorbellOutputPin = 19; // pin connected to the doorbell (when using hardware connection instead of mqtt to ring the bell)
@@ -314,10 +318,14 @@ void startWebserver(){
     
     // Route for root / web page
     webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       request->send(SPIFFS, "/index.html", String(), false, processor);
     });
 
     webServer.on("/enroll", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("startEnrollment"))
       {
         enrollId = request->arg("newFingerprintId");
@@ -328,6 +336,8 @@ void startWebserver(){
     });
 
     webServer.on("/editFingerprints", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("selectedFingerprint"))
       {
         if(request->hasArg("btnDelete"))
@@ -348,6 +358,8 @@ void startWebserver(){
     });
 
     webServer.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("btnSaveSettings"))
       {
         Serial.println("Save settings");
@@ -367,6 +379,8 @@ void startWebserver(){
 
 
     webServer.on("/pairing", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("btnDoPairing"))
       {
         Serial.println("Do (re)pairing");
@@ -380,6 +394,8 @@ void startWebserver(){
 
 
     webServer.on("/factoryReset", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("btnFactoryReset"))
       {
         notifyClients("Factory reset initiated...");
@@ -402,6 +418,8 @@ void startWebserver(){
 
 
     webServer.on("/deleteAllFingerprints", HTTP_GET, [](AsyncWebServerRequest *request){
+      if(!request->authenticate(http_username, http_password))
+          return request->requestAuthentication();
       if(request->hasArg("btnDeleteAllFingerprints"))
       {
         notifyClients("Deleting all fingerprints...");
