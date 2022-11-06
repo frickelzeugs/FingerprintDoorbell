@@ -8,6 +8,7 @@ bool SettingsManager::loadWifiSettings() {
         wifiSettings.password = preferences.getString("password", String(""));
         wifiSettings.hostname = preferences.getString("hostname", String("FingerprintDoorbell"));
         preferences.end();
+        return true;
     } else {
         return false;
     }
@@ -25,6 +26,7 @@ bool SettingsManager::loadAppSettings() {
         appSettings.sensorPairingCode = preferences.getString("pairingCode", "");
         appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
         preferences.end();
+        return true;
     } else {
         return false;
     }
