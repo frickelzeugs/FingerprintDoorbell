@@ -173,11 +173,12 @@ As the name already says this will delete all your settings and fingerprints fro
 | -------- | -------- | -------- |
 | red | permanent | System is in error state |
 | red | breathing | System in WiFi config mode |
-| red | flashing  | Finger on sensor detected (no match found yet) |
-| blue | permanent | System ready (touch ring ignored) |
-| blue | breathing | System ready (touch ring active) |
+| white | flashing  | Finger on sensor detected (no match found yet) |
+| white | permanent | System ready (touch ring ignored) |
+| white | breathing | System ready (touch ring active) |
 | blue | flashing | System startup (not ready yet) |
-| purple | solid | Fingerprint match found or when in enrollment mode this means pass is finished, lift your finger |
+| green | solid | Fingerprint match found |
+| purple | solid | In enrollment mode this means pass is finished, lift your finger |
 | purple | flashing | Enrollment active (waiting for finger) |
 
 ## What is the MQTT topic "fingerprintDoorbell/ignoreTouchRing" for and how to use it?
