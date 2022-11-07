@@ -457,7 +457,7 @@ void FingerprintManager::setLedRingWifiConfig() {
 
 void FingerprintManager::setLedRingReady() {
   if (!ignoreTouchRing)
-    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
+    finger.LEDcontrol(touchRingActiveSequence, 250, touchRingActiveColor);
   else
     finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
 }
@@ -558,3 +558,7 @@ void FingerprintManager::importSensorDB() {
 
 }
 
+void FingerprintManager::configTouchRingActive(uint8_t color, uint8_t sequence) {
+  touchRingActiveColor = color;
+  touchRingActiveSequence = sequence;
+}

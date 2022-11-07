@@ -109,6 +109,44 @@
 		</div>
 	</div>
 
+	<div class="form-group">
+		<label for="select" class="control-label col-xs-4">Touch Ring Active</label> 
+		<div class="col-xs-4">
+			<select id="touchRingActiveColor" name="touchRingActiveColor" aria-describedby="selectHelpBlock" class="select form-control">
+				<option value="1" %TOUCH_RING_ACTIVE_COLOR_1%>Red</option>
+				<option value="2" %TOUCH_RING_ACTIVE_COLOR_2%>Blue</option>
+				<option value="3" %TOUCH_RING_ACTIVE_COLOR_3%>Purple</option>
+				<option value="4" %TOUCH_RING_ACTIVE_COLOR_4%>Green</option>
+				<option value="5" %TOUCH_RING_ACTIVE_COLOR_5%>Yellow</option>
+				<option value="6" %TOUCH_RING_ACTIVE_COLOR_6%>Cyan</option>
+				<option value="7" %TOUCH_RING_ACTIVE_COLOR_7%>White</option>
+			</select> 
+			<span id="selectHelpBlock" class="help-block">Latest version of R503 supports seven colors !</span>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="radio" class="control-label col-xs-4"></label> 
+		<div class="col-xs-4">
+			<label class="radio-inline">
+				<input type="radio" name="touchRingActiveSequence" value="4" %TOUCH_RING_ACTIVE_SEQUENCE_4%>
+					Off
+			</label>
+			<label class="radio-inline">
+			<input type="radio" name="touchRingActiveSequence" value="3" %TOUCH_RING_ACTIVE_SEQUENCE_3%>
+					On
+			</label>
+			<label class="radio-inline">
+			<input type="radio" name="touchRingActiveSequence" value="1" %TOUCH_RING_ACTIVE_SEQUENCE_1%>
+					Breath
+			</label> 
+			<label class="radio-inline">
+			<input type="radio" name="touchRingActiveSequence" value="2" %TOUCH_RING_ACTIVE_SEQUENCE_2%>
+					Blink
+			</label> 
+			<span id="radioHelpBlock" class="help-block">Sequence</span>
+		</div>
+	</div> 
+
 	<!-- Button -->
 	<div class="form-group">
 	  <label class="col-md-4 control-label" for="btnSaveSettings"></label>

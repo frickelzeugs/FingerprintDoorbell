@@ -18,6 +18,8 @@ struct AppSettings {
     String ntpServer = "pool.ntp.org";
     String sensorPin = "00000000";
     String sensorPairingCode = "";
+    int8_t touchRingActiveColor = 2;
+    int8_t touchRingActiveSequence = 1;
     bool   sensorPairingValid = false;
 };
 
