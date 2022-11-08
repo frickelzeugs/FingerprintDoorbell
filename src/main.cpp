@@ -473,7 +473,6 @@ void startWebserver(){
 
 }
 
-
 void mqttCallback(char* topic, byte* message, unsigned int length) {
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
@@ -641,6 +640,17 @@ void reboot()
   ESP.restart();
 }
 
+void splitIpAndPort(String mqttServerConfigString, const char* &mqttHostname, u16_t &mqttPort) {
+        s8_t positionOfColon = mqttServerConfigString.indexOf(":");
+
+        if (positionOfColon >= 0) {
+          mqttHostname = mqttServerConfigString.substring(0 , positionOfColon).c_str();
+          mqttPort = mqttServerConfigString.substring(positionOfColon + 1).toInt();
+        } else {
+          mqttHostname = mqttServerConfigString.c_str();
+          mqttPort = 1883;
+        }
+}
 
 void setup()
 {
@@ -685,12 +695,17 @@ void setup()
         notifyClients("Error: No MQTT Broker is configured! Please go to settings and enter your server URL + user credentials.");
       } else {
         delay(5000);
+        
+        const char* mqttHostname;
+        u16_t mqttPort;
+        splitIpAndPort(settingsManager.getAppSettings().mqttServer , mqttHostname, mqttPort);
+
         IPAddress mqttServerIp;
-        if (WiFi.hostByName(settingsManager.getAppSettings().mqttServer.c_str(), mqttServerIp))
+        if (WiFi.hostByName(mqttHostname, mqttServerIp))
         {
           mqttConfigValid = true;
-          Serial.println("IP used for MQTT server: " + mqttServerIp.toString());
-          mqttClient.setServer(mqttServerIp , 1883);
+          Serial.println("IP used for MQTT server: " + mqttServerIp.toString() + ":" + mqttPort) ;
+          mqttClient.setServer(mqttServerIp , mqttPort);
           mqttClient.setCallback(mqttCallback);
           connectMqttClient();
         }
