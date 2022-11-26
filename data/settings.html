@@ -70,6 +70,14 @@
 	</div>
 
 	<div class="form-group">
+		<label class="col-md-4 control-label" for="mqtt_port">MQTT Port</label>  
+		<div class="col-md-4">
+		<input id="mqtt_port" name="mqtt_port" type="text" placeholder="Port for connecting to your MQTT Broker" class="form-control input-md" value="%MQTT_PORT%">
+		<small class="text-muted">Leave empty if you want to use the default port (1833).</small>		
+		</div>
+	</div>
+
+	<div class="form-group">
 		<label class="col-md-4 control-label" for="mqtt_username">MQTT Username</label>  
 		<div class="col-md-4">
 		<input id="mqtt_username" name="mqtt_username" type="text" placeholder="Username for connecting to your MQTT Broker" class="form-control input-md" value="%MQTT_USERNAME%">
