@@ -20,6 +20,8 @@ struct AppSettings {
     String sensorPairingCode = "";
     int8_t touchRingActiveColor = 2;
     int8_t touchRingActiveSequence = 1;
+    int8_t scanColor = 1;
+    int8_t matchColor = 3;
     bool   sensorPairingValid = false;
 };
 

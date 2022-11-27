@@ -27,6 +27,8 @@ bool SettingsManager::loadAppSettings() {
         appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
         appSettings.touchRingActiveColor = preferences.getShort("ringActCol", 2);
         appSettings.touchRingActiveSequence = preferences.getShort("ringActSeq", 1);
+        appSettings.scanColor = preferences.getShort("scanColor", 1);
+        appSettings.matchColor = preferences.getShort("matchColor", 3);
         preferences.end();
         return true;
     } else {
@@ -56,6 +58,8 @@ void SettingsManager::saveAppSettings() {
     preferences.putBool("pairingValid", appSettings.sensorPairingValid);
     preferences.putShort("ringActCol", appSettings.touchRingActiveColor);
     preferences.putShort("ringActSeq", appSettings.touchRingActiveSequence);
+    preferences.putShort("scanColor", appSettings.scanColor);
+    preferences.putShort("matchColor", appSettings.matchColor);
     preferences.end();
 }
 
