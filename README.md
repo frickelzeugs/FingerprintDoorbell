@@ -39,6 +39,13 @@ After python is available run the following command in your shell/cmd to install
 ```
 pip install esptool
 ```
+If there is a `command not found: pip` error but you have installed Python try to use pip3 insted of pip.
+```
+pip3 install esptool
+```
+
+
+
 
 Now esptool should be available in your shell/cmd. Check it by running:
 ```
