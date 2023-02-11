@@ -54,7 +54,7 @@ void FingerprintManager::updateTouchState(bool touched)
       // check if sensor or ring is touched
       if (touched) {
         // turn touch indicator on:
-        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, FINGERPRINT_LED_RED, 0);
+        finger.LEDcontrol(FINGERPRINT_LED_FLASHING, 25, scanColor, 0);
       } else {
         // turn touch indicator off:
         setLedRingReady();
@@ -189,7 +189,7 @@ Match FingerprintManager::scanFingerprint() {
     match.returnCode = finger.fingerSearch();
     if (match.returnCode == FINGERPRINT_OK) {
         // found a match!
-        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_PURPLE);
+        finger.LEDcontrol(FINGERPRINT_LED_ON, 0, matchColor);
         
         match.scanResult = ScanResult::matchFound;
         match.matchId = finger.fingerID;
@@ -457,7 +457,7 @@ void FingerprintManager::setLedRingWifiConfig() {
 
 void FingerprintManager::setLedRingReady() {
   if (!ignoreTouchRing)
-    finger.LEDcontrol(FINGERPRINT_LED_BREATHING, 250, FINGERPRINT_LED_BLUE);
+    finger.LEDcontrol(touchRingActiveSequence, 250, touchRingActiveColor);
   else
     finger.LEDcontrol(FINGERPRINT_LED_ON, 0, FINGERPRINT_LED_BLUE); // just an indicator for me to see if touch ring is active or not
 }
@@ -558,3 +558,9 @@ void FingerprintManager::importSensorDB() {
 
 }
 
+void FingerprintManager::configTouchRingActive(uint8_t color, uint8_t sequence, uint8_t scanColor, uint8_t matchColor ) {
+  this->touchRingActiveColor = color;
+  this->touchRingActiveSequence = sequence;
+  this->scanColor = scanColor;
+  this->matchColor = matchColor;
+}

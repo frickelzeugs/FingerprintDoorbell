@@ -25,6 +25,10 @@ bool SettingsManager::loadAppSettings() {
         appSettings.sensorPin = preferences.getString("sensorPin", "00000000");
         appSettings.sensorPairingCode = preferences.getString("pairingCode", "");
         appSettings.sensorPairingValid = preferences.getBool("pairingValid", false);
+        appSettings.touchRingActiveColor = preferences.getShort("ringActCol", 2);
+        appSettings.touchRingActiveSequence = preferences.getShort("ringActSeq", 1);
+        appSettings.scanColor = preferences.getShort("scanColor", 1);
+        appSettings.matchColor = preferences.getShort("matchColor", 3);
         preferences.end();
         return true;
     } else {
@@ -52,6 +56,10 @@ void SettingsManager::saveAppSettings() {
     preferences.putString("sensorPin", appSettings.sensorPin);
     preferences.putString("pairingCode", appSettings.sensorPairingCode);
     preferences.putBool("pairingValid", appSettings.sensorPairingValid);
+    preferences.putShort("ringActCol", appSettings.touchRingActiveColor);
+    preferences.putShort("ringActSeq", appSettings.touchRingActiveSequence);
+    preferences.putShort("scanColor", appSettings.scanColor);
+    preferences.putShort("matchColor", appSettings.matchColor);
     preferences.end();
 }
 
