@@ -353,6 +353,7 @@ void startWebserver(){
         Serial.println("Save settings");
         AppSettings settings = settingsManager.getAppSettings();
         settings.mqttServer = request->arg("mqtt_server");
+        settings.mqttPort = (uint16_t) request->arg("mqtt_port").toInt();
         settings.mqttUsername = request->arg("mqtt_username");
         settings.mqttPassword = request->arg("mqtt_password");
         settings.mqttRootTopic = request->arg("mqtt_rootTopic");
@@ -662,8 +663,8 @@ void setup()
         if (WiFi.hostByName(settingsManager.getAppSettings().mqttServer.c_str(), mqttServerIp))
         {
           mqttConfigValid = true;
-          Serial.println("IP used for MQTT server: " + mqttServerIp.toString());
-          mqttClient.setServer(mqttServerIp , 1883);
+          Serial.println("IP used for MQTT server: " + mqttServerIp.toString() + " | Port: " + String(settingsManager.getAppSettings().mqttPort));
+          mqttClient.setServer(mqttServerIp , settingsManager.getAppSettings().mqttPort);
           mqttClient.setCallback(mqttCallback);
           connectMqttClient();
         }
