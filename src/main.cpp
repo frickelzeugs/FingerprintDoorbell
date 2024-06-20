@@ -24,6 +24,9 @@ const char* WifiConfigSsid = "FingerprintDoorbell-Config"; // SSID used for WiFi
 const char* WifiConfigPassword = "12345678"; // password used for WiFi when in Access Point mode for configuration. Min. 8 chars needed!
 IPAddress   WifiConfigIp(192, 168, 4, 1); // IP of access point in wifi config mode
 
+const char* Selected = "selected"; // password used for WiFi when in Access Point mode for configuration. Min. 8 chars needed!
+const char* Checked = "checked"; // password used for WiFi when in Access Point mode for configuration. Min. 8 chars needed!
+
 const long  gmtOffset_sec = 0; // UTC Time
 const int   daylightOffset_sec = 0; // UTC Time
 const int   doorbellOutputPin = 19; // pin connected to the doorbell (when using hardware connection instead of mqtt to ring the bell)
@@ -137,6 +140,56 @@ String processor(const String& var){
     return settingsManager.getAppSettings().mqttRootTopic;
   } else if (var == "NTP_SERVER") {
     return settingsManager.getAppSettings().ntpServer;
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_1") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 1) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_2") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 2) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_3") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 3) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_4") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 4) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_5") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 5) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_6") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 6) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_COLOR_7") {
+    return (settingsManager.getAppSettings().touchRingActiveColor == 7) ? Selected : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_SEQUENCE_4") {
+    return (settingsManager.getAppSettings().touchRingActiveSequence == 4) ? Checked : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_SEQUENCE_3") {
+    return (settingsManager.getAppSettings().touchRingActiveSequence == 3) ? Checked : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_SEQUENCE_1") {
+    return (settingsManager.getAppSettings().touchRingActiveSequence == 1) ? Checked : "";
+  }  else if (var == "TOUCH_RING_ACTIVE_SEQUENCE_2") {
+    return (settingsManager.getAppSettings().touchRingActiveSequence == 2) ? Checked : "";
+  }  else if (var == "SCAN_COLOR_1") {
+    return (settingsManager.getAppSettings().scanColor == 1) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_2") {
+    return (settingsManager.getAppSettings().scanColor == 2) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_3") {
+    return (settingsManager.getAppSettings().scanColor == 3) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_4") {
+    return (settingsManager.getAppSettings().scanColor == 4) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_5") {
+    return (settingsManager.getAppSettings().scanColor == 5) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_6") {
+    return (settingsManager.getAppSettings().scanColor == 6) ? Selected : "";
+  }  else if (var == "SCAN_COLOR_7") {
+    return (settingsManager.getAppSettings().scanColor == 7) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_1") {
+    return (settingsManager.getAppSettings().matchColor == 1) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_2") {
+    return (settingsManager.getAppSettings().matchColor == 2) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_3") {
+    return (settingsManager.getAppSettings().matchColor == 3) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_4") {
+    return (settingsManager.getAppSettings().matchColor == 4) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_5") {
+    return (settingsManager.getAppSettings().matchColor == 5) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_6") {
+    return (settingsManager.getAppSettings().matchColor == 6) ? Selected : "";
+  }  else if (var == "MATCH_COLOR_7") {
+    return (settingsManager.getAppSettings().matchColor == 7) ? Selected : "";
   }
 
   return String();
@@ -357,6 +410,10 @@ void startWebserver(){
         settings.mqttPassword = request->arg("mqtt_password");
         settings.mqttRootTopic = request->arg("mqtt_rootTopic");
         settings.ntpServer = request->arg("ntpServer");
+        settings.touchRingActiveColor = request->arg("touchRingActiveColor").toInt();
+        settings.touchRingActiveSequence = request->arg("touchRingActiveSequence").toInt();
+        settings.scanColor = request->arg("scanColor").toInt();
+        settings.matchColor = request->arg("matchColor").toInt();
         settingsManager.saveAppSettings(settings);
         request->redirect("/");  
         shouldReboot = true;
@@ -445,7 +502,6 @@ void startWebserver(){
   notifyClients("System booted successfully!");
 
 }
-
 
 void mqttCallback(char* topic, byte* message, unsigned int length) {
   Serial.print("Message arrived on topic: ");
@@ -614,6 +670,17 @@ void reboot()
   ESP.restart();
 }
 
+void splitIpAndPort(String mqttServerConfigString, const char* &mqttHostname, u16_t &mqttPort) {
+        s8_t positionOfColon = mqttServerConfigString.indexOf(":");
+
+        if (positionOfColon >= 0) {
+          mqttHostname = mqttServerConfigString.substring(0 , positionOfColon).c_str();
+          mqttPort = mqttServerConfigString.substring(positionOfColon + 1).toInt();
+        } else {
+          mqttHostname = mqttServerConfigString.c_str();
+          mqttPort = 1883;
+        }
+}
 
 void setup()
 {
@@ -658,12 +725,17 @@ void setup()
         notifyClients("Error: No MQTT Broker is configured! Please go to settings and enter your server URL + user credentials.");
       } else {
         delay(5000);
+        
+        const char* mqttHostname;
+        u16_t mqttPort;
+        splitIpAndPort(settingsManager.getAppSettings().mqttServer , mqttHostname, mqttPort);
+
         IPAddress mqttServerIp;
-        if (WiFi.hostByName(settingsManager.getAppSettings().mqttServer.c_str(), mqttServerIp))
+        if (WiFi.hostByName(mqttHostname, mqttServerIp))
         {
           mqttConfigValid = true;
-          Serial.println("IP used for MQTT server: " + mqttServerIp.toString());
-          mqttClient.setServer(mqttServerIp , 1883);
+          Serial.println("IP used for MQTT server: " + mqttServerIp.toString() + ":" + mqttPort) ;
+          mqttClient.setServer(mqttServerIp , mqttPort);
           mqttClient.setCallback(mqttCallback);
           connectMqttClient();
         }
@@ -672,8 +744,10 @@ void setup()
           notifyClients("MQTT Server '" + settingsManager.getAppSettings().mqttServer + "' not found. Please check your settings.");
         }
       }
-      if (fingerManager.connected)
+      if (fingerManager.connected) {
+        fingerManager.configTouchRingActive(settingsManager.getAppSettings().touchRingActiveColor,settingsManager.getAppSettings().touchRingActiveSequence,settingsManager.getAppSettings().scanColor,settingsManager.getAppSettings().matchColor);
         fingerManager.setLedRingReady();
+      }
       else
         fingerManager.setLedRingError();
     }  else {
