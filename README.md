@@ -32,7 +32,13 @@ I made a small shield board for the ESP32 mini that contains a 6 pin Micro JST S
 Caution: Please do not forget to ground the sensor housing. Otherwise it can lead to unexpected restarts or even damages the ESP32 if you are electrostatically charged. I had occasional restarts when touching the sensor after I was electrostatically charged from the floor mats in the car.
 
 # Flashing the firmware
-## Method 1: use precompiled binaries
+## Method 1:
+This is the absolute preferred method over method 2, which was the standard method in the past. Thanks to the great work of the [ESP Web Tools](https://esphome.github.io/esp-web-tools/) project, flashing your ESP is now as easy as pie. All you need to do is connect your ESP32 module via USB and simply flash FingerprintDoorbell via your browser (Chrome, Edge or Opera required):
+
+### --> [FingerprintDoorbell Flasher](https://frickelzeugs.github.io/FingerprintDoorbell-flasher/)
+
+
+## Method 2: use precompiled binaries
 To flash the ESP32 with the precompiled binaries you can use the python based esptool from espressif. You'll need a running Python environment on your system, so get Python first here if you don't already have it: [Python download](https://www.python.org/downloads/)
 
 After python is available run the following command in your shell/cmd to install esptool:
@@ -117,8 +123,8 @@ Hard resetting via RTS pin...
 
 Your device should now boot up and the LED ring should start flashing slowly red ("breathing") to signal that it's currently in WiFi Config mode. Proceed with the configuration of the device.
 
-## Method 2: build and flash with Visual Studio Code and PlattformIO
-Method 1 is the prefered way if you just want a ready to use version of your FingerprintDoorbell. But if you want to build it on your own or maybe modify the code in some way to fit your needs please follow the instructions below. I don't want to go into details here and assume that you already have experience with IDEs or using Git repos:
+## Method 3: build and flash with Visual Studio Code and PlattformIO
+If you want to build the firmware on your own (e.g. if you want to modify the code or you don't trust binaries) please follow the instructions below. I don't want to go into details here and assume that you already have experience with IDEs or using Git repos:
 * Download and install [Visual Studio Code and PlattformIO Extension](https://platformio.org/platformio-ide).
 * Install [Git](https://git-scm.com/downloads) if you don't have already
 * Clone this GitHub repo and open the project workspace in VS Code (you can do this in one step from within VS Code)
